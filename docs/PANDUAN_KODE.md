@@ -33,7 +33,7 @@ Baca sesuai urutan berikut. Aset template dalam `assets/vendor/`, `css/adminlte.
 
 Kolom pencarian mempunyai ID `user-search`. JavaScript mendengarkan event `input`, yaitu kejadian saat teks berubah.
 
-Contoh ketika pengguna mengetik **Andi**:
+Contoh ketika pengguna mengetik **Ferry**:
 
 1. Ketikan pertama memulai timer.
 2. Ketikan berikutnya membatalkan timer sebelumnya.
@@ -53,7 +53,7 @@ Nilai `300` berarti 0,3 detik. Untuk mengubah jeda, ubah nilai tersebut di `js/u
 Contoh URL permintaan:
 
 ```text
-users.php?q=Andi&predikat=&sort=asc&size=5&page=1&ajax=1
+users.php?q=Ferry&predikat=&sort=asc&size=5&page=1&ajax=1
 ```
 
 `ajax=1` membuat `users.php` mengirim **hanya HTML tabel dan footer**. Input pencarian berada di luar bagian yang diganti, sehingga fokus dan posisi kursor tetap terjaga.
@@ -70,7 +70,7 @@ Menekan Enter langsung mencari tanpa menunggu timer. Mengosongkan input juga mem
 
 | Parameter | Contoh | Variabel | Keterangan |
 | --- | --- | --- | --- |
-| `q` | `Andi` | `$pencarian` | Potongan nama atau NIM; kosong berarti semua data |
+| `q` | `Ferry` | `$pencarian` | Potongan nama atau NIM; kosong berarti semua data |
 | `predikat` | `Memuaskan` | `$filterPredikat` | Hanya menerima salah satu pilihan predikat |
 | `sort` | `asc` | `$urutan` | `asc` atau `desc`; kosong berarti urutan NIM |
 | `size` | `5` | `$ukuran` | Hanya 5, 10, atau 15 |
@@ -95,7 +95,7 @@ WHERE (? = '' OR LOCATE(?, nilaimhsw.namalengkap) > 0 OR LOCATE(?, nilaimhsw.nim
   AND (? = '' OR nilaimhsw.predikat = ?)
 ```
 
-`LOCATE('Andi', namalengkap)` mencari posisi teks Andi pada nama. Posisi lebih dari 0 berarti cocok. Jika pencarian kosong, bagian `? = ''` membuat semua nama/NIM dapat ditampilkan.
+`LOCATE('Ferry', namalengkap)` mencari posisi teks Ferry pada nama. Posisi lebih dari 0 berarti cocok. Jika pencarian kosong, bagian `? = ''` membuat semua nama/NIM dapat ditampilkan.
 
 Tanda `?` adalah tempat untuk nilai input. `mysqli_stmt_bind_param()` mengisinya tanpa menggabungkan input pengguna langsung ke SQL.
 
@@ -201,7 +201,7 @@ Foto menerima JPG, PNG, atau GIF maksimal 2 MB. PHP memeriksa isi gambar dengan 
 
 File unggahan diberi nama acak dan disimpan dalam `uploads/mahasiswa/`. Database menyimpan path relatifnya pada kolom **`nilaimhsw.file_path`**, bukan isi file gambar. Foto kecil berukuran 44 x 44 piksel ditampilkan pada kolom yang sama dengan Nama Mahasiswa.
 
-Query daftar membaca `nilaimhsw.file_path AS foto`, sehingga tampilan dapat membaca `$mahasiswa['foto']`. Data contoh memakai avatar yang sudah tersedia pada `assets/img/`. Avatar bersama tidak dihapus saat mahasiswa dihapus atau fotonya diganti.
+Query daftar membaca `nilaimhsw.file_path AS foto`, sehingga tampilan dapat membaca `$mahasiswa['foto']`. Seeder memakai NIM, nama, nilai, dan path foto dari 9 data asli database lokal. Path yang belum terisi tetap NULL dan tampil sebagai gambar bawaan. File foto yang sudah tersedia berada dalam `uploads/mahasiswa/`.
 
 Untuk database versi sebelumnya, `database/setup.sql` mengganti nama tabel `nilaimhs` menjadi `nilaimhsw`, menambahkan `file_path`, lalu menyalin path dari `photo.namafile` atau kolom `foto` lama. Data mahasiswa, file foto, dan tabel lama lainnya dipertahankan. Path yang sudah terisi tidak ditimpa saat migrasi diulang. Aplikasi selanjutnya membaca dan menulis `nilaimhsw.file_path`.
 
@@ -234,7 +234,7 @@ Saat menambah ukuran halaman, ubah validasi PHP dan pilihan HTML bersama-sama. P
 
 ## 14. Latihan pemeriksaan
 
-1. Import data contoh opsional, lalu ketik **Andi**. Hasil muncul otomatis tanpa Enter.
+1. Import snapshot data asli, lalu ketik **Ferry**. Hasil muncul otomatis tanpa Enter.
 2. Hapus pencarian. Daftar kembali muncul.
 3. Ketik nama yang tidak ada. Muncul pesan tidak ada hasil dan jumlah 0.
 4. Ketik cepat, lalu ganti pencarian. Hasil akhir harus sesuai ketikan terakhir.

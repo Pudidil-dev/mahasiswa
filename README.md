@@ -17,7 +17,7 @@ Sesuaikan path jika lokasi instalasi berbeda. Jika memakai server bawaan PHP, cu
 
 ## 2. Import / migrasi database
 
-**Instalasi baru:** impor [`database/mahasiswa.sql`](database/mahasiswa.sql). File ekspor ini berisi struktur tabel dan **16 mahasiswa dummy dengan avatar** yang sudah disertakan di proyek.
+**Instalasi baru:** impor [`database/mahasiswa.sql`](database/mahasiswa.sql). File ekspor ini berisi struktur tabel dan **9 data mahasiswa asli sesuai database lokal**, termasuk NIM, nama, nilai, dan path foto yang tersimpan.
 
 - **phpMyAdmin:** buka `http://localhost/phpmyadmin`, pilih **Import**, lalu pilih `database/mahasiswa.sql`. Database `mahasiswa` dibuat otomatis.
 - **XAMPP, melalui PowerShell** dari folder utama proyek:
@@ -35,7 +35,7 @@ Sesuaikan path jika lokasi instalasi berbeda. Jika memakai server bawaan PHP, cu
 
 Tambahkan `-p` jika akun database memakai password. Di PowerShell biasa, jika `mysql` tidak dikenali, gunakan path `C:\laragon\bin\mysql\<versi>\bin\mysql.exe` sesuai instalasi.
 
-**Sudah memiliki database versi lama:** jalankan [`database/setup.sql`](database/setup.sql), lalu [`database/seed.sql`](database/seed.sql) untuk menambahkan data demo. Gunakan perintah di atas dengan mengganti nama file; untuk seed, pilih database `mahasiswa`:
+**Sudah memiliki database versi lama:** jalankan [`database/setup.sql`](database/setup.sql), lalu [`database/seed.sql`](database/seed.sql) untuk menambahkan data dari snapshot. Gunakan perintah di atas dengan mengganti nama file; untuk seed, pilih database `mahasiswa`:
 
 ```shell
 mysql -u root --execute="SOURCE database/setup.sql"
@@ -71,10 +71,10 @@ Jika memakai nama database lain, sesuaikan juga `CREATE DATABASE` dan `USE` pada
 ## 5. Coba fitur UTS
 
 1. Foto kecil tampil di sebelah nama, dalam kolom **Nama Mahasiswa**. Path tersimpan di **`nilaimhsw.file_path`**.
-2. Ketik **Andi** untuk mencari nama, lalu coba dropdown **Predikat**.
+2. Ketik **Ferry** untuk mencari nama, lalu coba dropdown **Predikat**.
 3. Klik panah pada **Nilai Akhir** untuk berganti ASC/DESC.
-4. Pilih **5, 10, atau 15** per halaman; coba **First Page, Previous, Next, Last Page**. Dengan 16 data demo tersedia 4, 2, dan 2 halaman.
-5. Coba tambah/edit dengan foto, lalu hapus data. Avatar demo memakai aset bersama dan tetap tersedia untuk mahasiswa lain.
+4. Pilih **5, 10, atau 15** per halaman; coba **First Page, Previous, Next, Last Page**. Dengan 9 data snapshot tersedia 2, 1, dan 1 halaman. Untuk perpindahan halaman pada limit 10 dan 15, diperlukan minimal 16 data asli.
+5. Coba tambah/edit dengan foto, lalu hapus data uji. Snapshot memakai 3 path foto asli; 6 mahasiswa yang belum memiliki foto memakai gambar bawaan.
 
 Pengujian otomatis: `python tests/check_uts.py` (Python, PHP, dan `mysql` di PATH, misalnya melalui Terminal Laragon). Jika perlu, tambahkan `--mysql "C:\xampp\mysql\bin\mysql.exe"` dan `--php "C:\xampp\php\php.exe"`. Tes memakai database sementara yang dibersihkan setelah selesai.
 
@@ -83,6 +83,6 @@ Pengujian otomatis: `python tests/check_uts.py` (Python, PHP, dan `mysql` di PAT
 - **Koneksi gagal:** pastikan MySQL aktif dan konfigurasi koneksi sesuai.
 - **Tabel/kolom belum ditemukan:** jalankan `database/setup.sql`.
 - **Foto gagal diunggah:** JPG/PNG/GIF maksimal 2 MB; folder `uploads/mahasiswa/` harus dapat ditulis PHP. Atur `upload_max_filesize` minimal `2M` dan `post_max_size` minimal `8M` di `php.ini`.
-- **Memindahkan data sendiri:** ekspor tabel `nilaimhsw` dan salin `uploads/mahasiswa/`. File `database/mahasiswa.sql` adalah ekspor data demo.
+- **Memindahkan data sendiri:** ekspor tabel `nilaimhsw` dan salin `uploads/mahasiswa/`. File `database/mahasiswa.sql` berisi snapshot 9 data asli; path yang kosong tetap `NULL`.
 
 Penjelasan kode: [Panduan kode untuk pemula](docs/PANDUAN_KODE.md).

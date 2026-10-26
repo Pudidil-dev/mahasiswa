@@ -104,8 +104,23 @@ try:
     import_sql('seed.sql', database)
     import_sql('seed.sql', database)
     assert snapshot == sql('SELECT * FROM nilaimhsw ORDER BY nim', database)
-    assert sql('SELECT COUNT(*) FROM nilaimhsw', database) == '16'
+    source_count = int(sql('SELECT COUNT(*) FROM nilaimhsw', database))
+    assert source_count > 0
     print('PASS: import dump lengkap dan seed berulang tanpa duplikasi')
+
+    # Data tambahan hanya untuk menguji pagination di database sementara.
+    # Seeder tetap memakai data asli; foto asli tidak diedit/dihapus oleh tes.
+    fixture_nims = []
+    grades = [(30, 'E', 'Tidak Lulus'), (45, 'D', 'Kurang'), (55, 'C', 'Cukup'),
+              (65, 'B', 'Memuaskan'), (75, 'B', 'Memuaskan'),
+              (85, 'A', 'Sangat Memuaskan'), (95, 'A', 'Sangat Memuaskan')]
+    for index in range(max(1, 16 - source_count)):
+        fixture_nim = str(8888100001 + index)
+        score, letter, predicate = grades[index % len(grades)]
+        sql(f"""INSERT INTO nilaimhsw (nim,namalengkap,file_path,nilaiakhir,nilaihuruf,predikat)
+            VALUES ('{fixture_nim}','Uji Pagination {index + 1}','assets/img/avatar.png',
+                    {score},'{letter}','{predicate}')""", database)
+        fixture_nims.append(fixture_nim)
 
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
@@ -157,22 +172,25 @@ try:
         return {r['nim']: r for r in json.loads(request('php/mahasiswa.php'))}
 
     all_data = data()
+    total = len(all_data)
+    source_sample = next(row for nim, row in all_data.items() if nim not in fixture_nims)
     for size in (5, 10, 15):
         first = page(size=size)
-        last_page = (16 + size - 1) // size
+        last_page = (total + size - 1) // size
         assert len(rows(first)) == size
         assert nav(first, 'First Page')[0] and nav(first, 'Previous')[0]
         assert urllib.parse.parse_qs(urllib.parse.urlsplit(nav(first, 'Last Page')[1]).query)['page'] == [str(last_page)]
         last = page(size=size, page=last_page)
-        assert len(rows(last)) == 16 - size * (last_page - 1)
+        assert len(rows(last)) == total - size * (last_page - 1)
         assert nav(last, 'Last Page')[0] and nav(last, 'Next')[0]
         assert urllib.parse.parse_qs(urllib.parse.urlsplit(nav(last, 'First Page')[1]).query)['page'] == ['1']
     for sort in ('asc', 'desc'):
-        found = [row for number in range(1, 5) for row in rows(page(size=5, page=number, sort=sort, ajax=1))]
+        found = [row for number in range(1, (total + 4) // 5 + 1)
+                 for row in rows(page(size=5, page=number, sort=sort, ajax=1))]
         scores = [float(row[2]) for row in found]
         assert scores == sorted(scores, reverse=sort == 'desc')
-        assert len({row[0] for row in found}) == 16
-    assert rows(page(q='andi', size=15))[0][1] == 'Andi Saputra'
+        assert len({row[0] for row in found}) == total
+    assert any(row[0] == source_sample['nim'] for row in rows(page(q=source_sample['namalengkap'].lower(), size=15)))
     for predicate in {row['predikat'] for row in all_data.values()}:
         found = rows(page(predikat=predicate, size=15))
         assert len(found) == sum(row['predikat'] == predicate for row in all_data.values())
@@ -191,12 +209,13 @@ try:
     document = page(size=15)
     name_cells = re.findall(r'<td>\s*<div class="mahasiswa-identitas">(.*?)</div>\s*</td>', document, re.S)
     assert len(name_cells) == 15 and all('<img' in cell and '<span>' in cell for cell in name_cells)
-    for path in {row['file_path'] for row in all_data.values()}:
+    for path in {row['file_path'] for row in all_data.values() if row['file_path']}:
         assert request(path)
-    assert 'Andi Saputra' in request('php/readphoto.php').decode()
+    photo_sample = next(row for row in all_data.values() if row['file_path'])
+    assert html.escape(photo_sample['namalengkap'], quote=False) in request('php/readphoto.php').decode()
     assert b'<img' in request('php/mahasiswa.php?tabel=1')
     assert b'<form' in request('php/form_upload.php')
-    print('PASS: foto satu kolom dengan nama, aset demo, galeri, dan endpoint referensi')
+    print('PASS: foto satu kolom dengan nama, path foto snapshot, galeri, dan endpoint referensi')
 
     token = re.search(r'name="token" value="([^"]+)"', document).group(1)
     nim = '8888000001'
@@ -223,7 +242,7 @@ try:
     assert latest != new_photo and not (ROOT / new_photo).exists()
     request('php/deletenilai.php', {'nim': nim, 'token': token})
     assert nim not in data() and not (ROOT / latest).exists()
-    request('php/deletenilai.php', {'nim': '9999000001', 'token': token})
+    request('php/deletenilai.php', {'nim': fixture_nims[0], 'token': token})
     assert (ROOT / 'assets/img/avatar.png').exists()
     print('PASS: tambah, NIM duplikat, edit, validasi upload, ganti foto, hapus, dan avatar bersama')
     print('Semua pengujian UTS lulus.')
