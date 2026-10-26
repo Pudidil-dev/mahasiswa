@@ -22,7 +22,7 @@ Baca sesuai urutan berikut. Aset template dalam `assets/vendor/`, `css/adminlte.
 1. Browser meminta `users.php`.
 2. `aksi_nilai.php` membuka sesi dan menyiapkan token untuk form.
 3. `connection.php` membuat koneksi MySQL dalam variabel `$conn`.
-4. Bagian PHP di atas `users.php` membaca URL, menggabungkan data `nilaimhs` dengan `photo` melalui NIM, lalu menyimpan hasil ke array `$daftarMahasiswa`.
+4. Bagian PHP di atas `users.php` membaca URL, membaca data dan path foto dari `nilaimhsw`, lalu menyimpan hasil ke array `$daftarMahasiswa`.
 5. Koneksi ditutup karena hasil query sudah ada di array.
 6. Bagian HTML pada file yang sama menampilkan halaman, termasuk tabel dan form modal.
 7. Browser menjalankan JavaScript untuk mengaktifkan pencarian, dropdown, dan modal.
@@ -91,8 +91,8 @@ Bagian PHP di atas `users.php` menjalankan dua query:
 Keduanya memakai filter yang sama, agar jumlah data dan isi halaman sesuai.
 
 ```sql
-WHERE (? = '' OR LOCATE(?, nilaimhs.namalengkap) > 0 OR LOCATE(?, nilaimhs.nim) > 0)
-  AND (? = '' OR nilaimhs.predikat = ?)
+WHERE (? = '' OR LOCATE(?, nilaimhsw.namalengkap) > 0 OR LOCATE(?, nilaimhsw.nim) > 0)
+  AND (? = '' OR nilaimhsw.predikat = ?)
 ```
 
 `LOCATE('Andi', namalengkap)` mencari posisi teks Andi pada nama. Posisi lebih dari 0 berarti cocok. Jika pencarian kosong, bagian `? = ''` membuat semua nama/NIM dapat ditampilkan.
@@ -118,7 +118,7 @@ Query daftar memakai `sssssii`: lima parameter teks untuk filter dan dua bilanga
 PHP menentukan `$urutanBerikut`, `$ikonUrutan`, dan `$statusUrutan` sebelum HTML ditampilkan. JavaScript membaca atribut `data-urutan` saat ikon diklik.
 
 ```sql
-ORDER BY nilaimhs.nilaiakhir ASC, nilaimhs.nim ASC
+ORDER BY nilaimhsw.nilaiakhir ASC, nilaimhsw.nim ASC
 ```
 
 ASC mengurutkan nilai terkecil lebih dahulu; DESC mengurutkan nilai terbesar lebih dahulu. NIM menjadi urutan kedua ketika nilainya sama. Kolom `nilaiakhir` bertipe `DECIMAL`, sehingga urutannya berdasarkan angka.
@@ -155,7 +155,7 @@ Saat tombol Edit dipilih, `isiFormEdit()` menyalin `data-nim`, `data-nama`, `dat
 
 ## 9. Alur tambah, edit, dan hapus
 
-**Tambah:** isi modal → `js/form-mahasiswa.js` mengirim POST → `php/insertnilai.php` memvalidasi input → hitung huruf/predikat → simpan file jika dipilih → INSERT mahasiswa ke `nilaimhs` dan path ke `photo` → kembali ke `users.php`.
+**Tambah:** isi modal → `js/form-mahasiswa.js` mengirim POST → `php/insertnilai.php` memvalidasi input → hitung huruf/predikat → simpan file jika dipilih → INSERT mahasiswa ke `nilaimhsw` dan simpan path pada `file_path` → kembali ke `users.php`.
 
 **Edit:** pilih Edit → data masuk ke modal → POST ke `php/editnilai.php` → validasi token/input → hitung ulang huruf/predikat → UPDATE → kirim JSON sukses → browser memuat ulang daftar dengan filter saat ini.
 
@@ -192,29 +192,18 @@ Jika aturan penilaian berubah, ubah fungsi itu agar tambah dan edit selalu memak
 | Fungsi dalam php/foto_mahasiswa.php | Kegunaan |
 | --- | --- |
 | `unggahFotoMahasiswa()` | Memeriksa dan menyimpan foto; mengembalikan path atau NULL jika tidak memilih file |
-| `simpanPathFotoMahasiswa()` | Menyimpan/memperbarui path pada tabel `photo` berdasarkan NIM |
+| `simpanPathFotoMahasiswa()` | Memperbarui `nilaimhsw.file_path` berdasarkan NIM |
 | `urlFotoMahasiswa()` | Memberikan path foto yang tersedia atau gambar bawaan |
 | `hapusFotoMahasiswa()` | Menghapus foto milik aplikasi saat diganti/dihapus |
 | `pathFotoMahasiswa()` | Memastikan path sesuai pola folder foto mahasiswa |
 
 Foto menerima JPG, PNG, atau GIF maksimal 2 MB. PHP memeriksa isi gambar dengan `getimagesize()`, bukan hanya nama ekstensi.
 
-File diberi nama acak dan disimpan dalam `uploads/mahasiswa/`. Database menyimpan path relatifnya pada kolom **`photo.namafile`**, bukan isi file gambar.
+File unggahan diberi nama acak dan disimpan dalam `uploads/mahasiswa/`. Database menyimpan path relatifnya pada kolom **`nilaimhsw.file_path`**, bukan isi file gambar. Foto kecil berukuran 44 x 44 piksel ditampilkan pada kolom yang sama dengan Nama Mahasiswa.
 
-Tabel `photo` memiliki kolom berikut:
+Query daftar membaca `nilaimhsw.file_path AS foto`, sehingga tampilan dapat membaca `$mahasiswa['foto']`. Data contoh memakai avatar yang sudah tersedia pada `assets/img/`. Avatar bersama tidak dihapus saat mahasiswa dihapus atau fotonya diganti.
 
-| Kolom | Arti |
-| --- | --- |
-| `id` | Nomor foto otomatis, sebagai primary key |
-| `nim` | NIM mahasiswa pemilik foto; harus terdaftar pada `nilaimhs` dan hanya boleh satu baris per NIM |
-| `namafile` | Path relatif, misalnya `uploads/mahasiswa/namacak.png` |
-| `tgl_unggah` | Waktu foto terakhir diunggah/diganti |
-
-Query daftar memakai `LEFT JOIN photo ON photo.nim = nilaimhs.nim`. LEFT JOIN tetap menampilkan mahasiswa yang belum mempunyai foto. `photo.namafile AS foto` memberi nama pendek `foto` pada hasil query, sehingga tampilan dapat membaca `$mahasiswa['foto']`.
-
-Foreign key mencegah foto untuk NIM yang tidak ada. `ON DELETE CASCADE` membersihkan baris `photo` saat mahasiswa dihapus. Penghapusan file di folder tetap dikerjakan PHP, karena MySQL hanya mengurus data tabel.
-
-Jika database berasal dari versi lama, `database/setup.sql` menyalin `nilaimhs.foto` ke `photo.namafile` berdasarkan NIM tanpa menghapus kolom lama. Foto yang sudah ada pada tabel baru tidak ditimpa saat skrip dijalankan ulang.
+Untuk database versi sebelumnya, `database/setup.sql` mengganti nama tabel `nilaimhs` menjadi `nilaimhsw`, menambahkan `file_path`, lalu menyalin path dari `photo.namafile` atau kolom `foto` lama. Data mahasiswa, file foto, dan tabel lama lainnya dipertahankan. Path yang sudah terisi tidak ditimpa saat migrasi diulang. Aplikasi selanjutnya membaca dan menulis `nilaimhsw.file_path`.
 
 Edit tanpa file mempertahankan foto lama. Ketika mengganti foto, foto lama dihapus setelah UPDATE berhasil. Jika penyimpanan database gagal, foto baru dibersihkan.
 
@@ -250,7 +239,7 @@ Saat menambah ukuran halaman, ubah validasi PHP dan pilihan HTML bersama-sama. P
 3. Ketik nama yang tidak ada. Muncul pesan tidak ada hasil dan jumlah 0.
 4. Ketik cepat, lalu ganti pencarian. Hasil akhir harus sesuai ketikan terakhir.
 5. Cari nama, lalu klik ikon sorting. Pencarian tetap aktif dan ikon berganti.
-6. Ganti ukuran 5, 10, dan 15. Coba pindah halaman.
+6. Ganti ukuran 5, 10, dan 15. Coba First Page, Previous, Next, dan Last Page; tombol di batas halaman harus nonaktif.
 7. Klik Edit setelah pencarian. Data modal harus sesuai hasil yang dipilih.
 8. Tambah mahasiswa dengan/tanpa foto, kemudian coba ganti foto melalui Edit.
 9. Muat ulang halaman. Pilihan pada URL tetap digunakan.
@@ -262,12 +251,12 @@ Untuk kesalahan JavaScript, buka Developer Tools browser dan lihat Console. Untu
 File referensi sekarang memakai database `mahasiswa` yang sama:
 
 1. `php/form_upload.php` menampilkan pilihan NIM/nama dan input foto.
-2. `php/upload.php` memvalidasi NIM/token, menyimpan file, dan memperbarui `photo.namafile`.
-3. `php/readphoto.php` membaca tabel `photo` beserta nama mahasiswa melalui JOIN.
+2. `php/upload.php` memvalidasi NIM/token, menyimpan file, dan memperbarui `nilaimhsw.file_path`.
+3. `php/readphoto.php` membaca mahasiswa yang memiliki `file_path` pada tabel `nilaimhsw`.
 4. Foto yang sama tampil di `users.php`, karena keduanya membaca tabel yang sama.
 
 `connectionForm.php` memuat `connection.php`, sehingga kredensial cukup diatur pada satu file. Nama input pada form referensi adalah `photo`, jadi handler memanggil `unggahFotoMahasiswa('photo')`. Form modal memakai nama `foto` dan memanggil fungsi tanpa argumen.
 
 Database `form` dari latihan sebelumnya tidak dihapus. Foto di sana belum memiliki NIM sehingga tidak dipasangkan otomatis; unggah melalui form yang baru untuk memilih pemiliknya.
 
-`php/mahasiswa.php` tetap menyediakan JSON/baris tabel untuk latihan lama dan kini ikut membaca path dari tabel `photo`.
+`php/mahasiswa.php` tetap menyediakan JSON/baris tabel untuk latihan lama dan kini ikut membaca `nilaimhsw.file_path`.

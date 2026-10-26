@@ -11,6 +11,13 @@ function pathFotoMahasiswa($foto)
 
 function urlFotoMahasiswa($foto)
 {
+    // Avatar bawaan dipakai data demo dan tidak boleh dihapus saat data dihapus.
+    if (in_array($foto, [
+        'assets/img/avatar.png', 'assets/img/avatar2.png', 'assets/img/avatar3.png',
+        'assets/img/avatar4.png', 'assets/img/avatar5.png',
+    ], true)) {
+        return $foto;
+    }
     $path = pathFotoMahasiswa($foto);
     return $path !== null && is_file($path) ? $foto : 'assets/img/default-150x150.png';
 }
@@ -23,17 +30,16 @@ function hapusFotoMahasiswa($foto)
     }
 }
 
-// Satu NIM menyimpan satu path foto. Upload berikutnya memperbarui baris itu.
+// Path foto disimpan langsung pada baris mahasiswa sesuai ketentuan UTS.
 function simpanPathFotoMahasiswa($conn, $nim, $foto)
 {
     if ($foto === null) {
         return;
     }
 
-    $sql = 'INSERT INTO photo (nim, namafile) VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE namafile = ?, tgl_unggah = CURRENT_TIMESTAMP';
+    $sql = 'UPDATE nilaimhsw SET file_path = ? WHERE nim = ?';
     $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, 'sss', $nim, $foto, $foto);
+    mysqli_stmt_bind_param($stmt, 'ss', $foto, $nim);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
 }

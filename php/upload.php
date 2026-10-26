@@ -17,10 +17,9 @@ if (!is_string($nim) || !preg_match('/^[0-9]{10}$/', $nim)) {
 // 2. Ambil path lama dan pastikan mahasiswa sudah terdaftar.
 require_once __DIR__ . '/connectionForm.php';
 $stmt = mysqli_prepare($conn, '
-    SELECT nilaimhs.nim, photo.namafile AS foto
-    FROM nilaimhs
-    LEFT JOIN photo ON photo.nim = nilaimhs.nim
-    WHERE nilaimhs.nim = ?
+    SELECT nim, file_path AS foto
+    FROM nilaimhsw
+    WHERE nilaimhsw.nim = ?
 ');
 mysqli_stmt_bind_param($stmt, 's', $nim);
 mysqli_stmt_execute($stmt);
@@ -40,7 +39,7 @@ if ($fotoBaru === null) {
     pesanAksi('Pilih foto yang akan diunggah.', 422);
 }
 
-// 4. Simpan path pada tabel photo, lalu bersihkan foto sebelumnya.
+// 4. Simpan path pada nilaimhsw.file_path, lalu bersihkan foto sebelumnya.
 try {
     simpanPathFotoMahasiswa($conn, $nim, $fotoBaru);
 } catch (mysqli_sql_exception $error) {

@@ -11,13 +11,13 @@ if (!is_string($nim) || !preg_match('/^[0-9]{10}$/', $nim)) {
 }
 require_once __DIR__ . '/connection.php';
 require_once __DIR__ . '/foto_mahasiswa.php';
-$stmt = mysqli_prepare($conn, 'SELECT namafile AS foto FROM photo WHERE nim = ?');
+$stmt = mysqli_prepare($conn, 'SELECT file_path AS foto FROM nilaimhsw WHERE nim = ?');
 mysqli_stmt_bind_param($stmt, 's', $nim);
 mysqli_stmt_execute($stmt);
 $row = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
 mysqli_stmt_close($stmt);
-// Foreign key ON DELETE CASCADE ikut menghapus baris pada tabel photo.
-$stmt = mysqli_prepare($conn, 'DELETE FROM nilaimhs WHERE nim = ?');
+// Foto berada pada baris mahasiswa yang sama; bersihkan file setelah DELETE.
+$stmt = mysqli_prepare($conn, 'DELETE FROM nilaimhsw WHERE nim = ?');
 mysqli_stmt_bind_param($stmt, 's', $nim);
 mysqli_stmt_execute($stmt);
 $jumlah = mysqli_stmt_affected_rows($stmt);

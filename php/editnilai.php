@@ -18,10 +18,9 @@ if ($method === 'POST') {
 
 // Ambil mahasiswa berdasarkan NIM. Tanda ? diisi oleh bind_param.
 $stmt = mysqli_prepare($conn, '
-    SELECT nilaimhs.nim, nilaimhs.namalengkap, nilaimhs.nilaiakhir, photo.namafile AS foto
-    FROM nilaimhs
-    LEFT JOIN photo ON photo.nim = nilaimhs.nim
-    WHERE nilaimhs.nim = ?
+    SELECT nim, namalengkap, nilaiakhir, file_path AS foto
+    FROM nilaimhsw
+    WHERE nilaimhsw.nim = ?
 ');
 mysqli_stmt_bind_param($stmt, 's', $nim);
 mysqli_stmt_execute($stmt);
@@ -60,7 +59,7 @@ if ($method === 'POST') {
         }
         mysqli_begin_transaction($conn);
         try {
-            $stmt = mysqli_prepare($conn, 'UPDATE nilaimhs SET namalengkap = ?, nilaiakhir = ?, nilaihuruf = ?, predikat = ? WHERE nim = ?');
+            $stmt = mysqli_prepare($conn, 'UPDATE nilaimhsw SET namalengkap = ?, nilaiakhir = ?, nilaihuruf = ?, predikat = ? WHERE nim = ?');
             mysqli_stmt_bind_param($stmt, 'sdsss', $nama, $angka, $huruf, $predikat, $nim);
             mysqli_stmt_execute($stmt);
             simpanPathFotoMahasiswa($conn, $nim, $fotoBaru);

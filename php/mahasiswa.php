@@ -12,23 +12,25 @@ require_once __DIR__ . '/connection.php';
 mysqli_set_charset($conn, 'utf8mb4');
 header('Cache-Control: no-store');
 
-$sql = 'SELECT nilaimhs.*, photo.namafile AS foto FROM nilaimhs
-        LEFT JOIN photo ON photo.nim = nilaimhs.nim ORDER BY nilaimhs.nim';
+$sql = 'SELECT nilaimhsw.*, file_path AS foto FROM nilaimhsw ORDER BY nim';
 $result = mysqli_query($conn, $sql);
 
 // Mode tabel HTML tetap tersedia untuk latihan/halaman lama.
 if (isset($_GET['tabel'])) {
     require_once __DIR__ . '/aksi_nilai.php';
     header('Content-Type: text/html; charset=utf-8');
+    require_once __DIR__ . '/foto_mahasiswa.php';
     if (mysqli_num_rows($result) > 0) {
         while ($row = mysqli_fetch_assoc($result)) {
+            $urlFoto = escapeNilai(urlFotoMahasiswa($row['foto']));
             // Amankan teks sebelum dicetak sebagai HTML.
             foreach ($row as $kolom => $isi) {
                 $row[$kolom] = htmlspecialchars($isi ?? '', ENT_QUOTES, 'UTF-8');
             }
             echo "<tr>";
             echo "<td>" . $row['nim'] . "</td>";
-            echo "<td>" . $row['namalengkap'] . "</td>";
+            echo '<td><img src="' . $urlFoto
+                . '" width="44" height="44" alt="Foto mahasiswa"> ' . $row['namalengkap'] . '</td>';
             echo "<td>" . $row['nilaiakhir'] . "</td>";
             echo "<td>" . $row['nilaihuruf'] . "</td>";
             echo "<td>" . $row['predikat'] . "</td>";

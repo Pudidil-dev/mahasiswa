@@ -2,7 +2,7 @@
 require_once __DIR__ . '/aksi_nilai.php';
 require_once __DIR__ . '/connectionForm.php';
 
-$hasil = mysqli_query($conn, 'SELECT nim, namalengkap FROM nilaimhs ORDER BY nim');
+$hasil = mysqli_query($conn, 'SELECT nim, namalengkap FROM nilaimhsw ORDER BY nim');
 $daftarMahasiswa = mysqli_fetch_all($hasil, MYSQLI_ASSOC);
 mysqli_free_result($hasil);
 mysqli_close($conn);

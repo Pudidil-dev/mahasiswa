@@ -4,10 +4,10 @@ require_once __DIR__ . '/connectionForm.php';
 require_once __DIR__ . '/foto_mahasiswa.php';
 
 $sql = '
-    SELECT photo.id, photo.nim, nilaimhs.namalengkap, photo.namafile, photo.tgl_unggah
-    FROM photo
-    INNER JOIN nilaimhs ON nilaimhs.nim = photo.nim
-    ORDER BY photo.tgl_unggah DESC, photo.id DESC
+    SELECT nim, namalengkap, file_path, modified_date
+    FROM nilaimhsw
+    WHERE file_path IS NOT NULL AND file_path <> \'\'
+    ORDER BY modified_date DESC, nim
 ';
 $hasil = mysqli_query($conn, $sql);
 $daftarFoto = mysqli_fetch_all($hasil, MYSQLI_ASSOC);
@@ -34,23 +34,21 @@ mysqli_close($conn);
                 <table class="table table-bordered align-middle mb-0">
                     <thead>
                         <tr>
-                            <th scope="col">ID</th>
                             <th scope="col">NIM</th>
                             <th scope="col">Nama Mahasiswa</th>
                             <th scope="col">Path Gambar</th>
-                            <th scope="col">Tanggal Unggah</th>
+                            <th scope="col">Terakhir Diubah</th>
                             <th scope="col">Pratinjau</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($daftarFoto as $foto): ?>
-                            <?php $urlGambar = '../' . urlFotoMahasiswa($foto['namafile']); ?>
+                            <?php $urlGambar = '../' . urlFotoMahasiswa($foto['file_path']); ?>
                             <tr>
-                                <td><?= escapeNilai($foto['id']) ?></td>
                                 <td><?= escapeNilai($foto['nim']) ?></td>
                                 <td><?= escapeNilai($foto['namalengkap']) ?></td>
-                                <td><?= escapeNilai($foto['namafile']) ?></td>
-                                <td><?= escapeNilai($foto['tgl_unggah']) ?></td>
+                                <td><?= escapeNilai($foto['file_path']) ?></td>
+                                <td><?= escapeNilai($foto['modified_date']) ?></td>
                                 <td>
                                     <a href="<?= escapeNilai($urlGambar) ?>" target="_blank" rel="noopener">
                                         <img src="<?= escapeNilai($urlGambar) ?>" width="100" alt="Foto <?= escapeNilai($foto['namalengkap']) ?>">
@@ -59,7 +57,7 @@ mysqli_close($conn);
                             </tr>
                         <?php endforeach; ?>
                         <?php if (count($daftarFoto) === 0): ?>
-                            <tr><td colspan="6" class="text-center">Belum ada foto mahasiswa.</td></tr>
+                            <tr><td colspan="5" class="text-center">Belum ada foto mahasiswa.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

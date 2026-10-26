@@ -30,12 +30,12 @@ if (!$halaman || $halaman < 1) {
 // LOCATE mencari potongan nama/NIM. Pencarian kosong berarti semua data.
 // Tanda ? diisi lewat bind_param supaya input tidak menjadi perintah SQL.
 $sqlFilter = "
-    WHERE (? = '' OR LOCATE(?, nilaimhs.namalengkap) > 0 OR LOCATE(?, nilaimhs.nim) > 0)
-      AND (? = '' OR nilaimhs.predikat = ?)
+    WHERE (? = '' OR LOCATE(?, nilaimhsw.namalengkap) > 0 OR LOCATE(?, nilaimhsw.nim) > 0)
+      AND (? = '' OR nilaimhsw.predikat = ?)
 ";
 
 // 2. Hitung jumlah data yang cocok, sebelum membatasi data per halaman.
-$stmtJumlah = mysqli_prepare($conn, 'SELECT COUNT(*) FROM nilaimhs ' . $sqlFilter);
+$stmtJumlah = mysqli_prepare($conn, 'SELECT COUNT(*) FROM nilaimhsw ' . $sqlFilter);
 mysqli_stmt_bind_param(
     $stmtJumlah,
     'sssss',
@@ -56,18 +56,17 @@ $halaman = min($halaman, $jumlahHalaman);
 $offset = ($halaman - 1) * $ukuran;
 
 // Nama kolom dan arah ORDER BY ditentukan kode, bukan input SQL pengguna.
-$urutanSql = 'nilaimhs.nim ASC';
+$urutanSql = 'nilaimhsw.nim ASC';
 if ($urutan !== '') {
-    $urutanSql = 'nilaimhs.nilaiakhir ' . strtoupper($urutan) . ', nilaimhs.nim ASC';
+    $urutanSql = 'nilaimhsw.nilaiakhir ' . strtoupper($urutan) . ', nilaimhsw.nim ASC';
 }
 
 // 3. Ambil hanya baris pada halaman aktif. s = string, i = integer.
 $sqlData = '
-    SELECT nilaimhs.nim, nilaimhs.namalengkap, photo.namafile AS foto,
-           nilaimhs.nilaiakhir, nilaimhs.nilaihuruf, nilaimhs.predikat,
-           nilaimhs.created_date, nilaimhs.modified_date
-    FROM nilaimhs
-    LEFT JOIN photo ON photo.nim = nilaimhs.nim
+    SELECT nilaimhsw.nim, nilaimhsw.namalengkap, nilaimhsw.file_path AS foto,
+           nilaimhsw.nilaiakhir, nilaimhsw.nilaihuruf, nilaimhsw.predikat,
+           nilaimhsw.created_date, nilaimhsw.modified_date
+    FROM nilaimhsw
 ' . $sqlFilter;
 $sqlData .= ' ORDER BY ' . $urutanSql . ' LIMIT ? OFFSET ?';
 $stmtData = mysqli_prepare($conn, $sqlData);
@@ -371,12 +370,21 @@ $permintaanAjax = ambilParameterTeks('ajax') === '1';
                                             <ul class="pagination pagination-sm mb-0">
                                                 <?php if ($halaman > 1): ?>
                                                     <li class="page-item">
-                                                        <a class="page-link" data-halaman="<?= $halaman - 1 ?>"
-                                                           href="<?= escapeNilai(urlDaftarMahasiswa($parameterDaftar, $halaman - 1)) ?>"
-                                                           aria-label="Halaman sebelumnya">Sebelumnya</a>
+                                                        <a class="page-link" data-halaman="1"
+                                                           href="<?= escapeNilai(urlDaftarMahasiswa($parameterDaftar, 1)) ?>"
+                                                           aria-label="Halaman pertama">First Page</a>
                                                     </li>
                                                 <?php else: ?>
-                                                    <li class="page-item disabled"><span class="page-link">Sebelumnya</span></li>
+                                                    <li class="page-item disabled"><span class="page-link" aria-disabled="true">First Page</span></li>
+                                                <?php endif; ?>
+                                                <?php if ($halaman > 1): ?>
+                                                    <li class="page-item">
+                                                        <a class="page-link" data-halaman="<?= $halaman - 1 ?>"
+                                                           href="<?= escapeNilai(urlDaftarMahasiswa($parameterDaftar, $halaman - 1)) ?>"
+                                                           aria-label="Halaman sebelumnya">Previous</a>
+                                                    </li>
+                                                <?php else: ?>
+                                                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
                                                 <?php endif; ?>
                             
                                                 <?php $halamanSebelumnya = 0; ?>
@@ -401,10 +409,19 @@ $permintaanAjax = ambilParameterTeks('ajax') === '1';
                                                     <li class="page-item">
                                                         <a class="page-link" data-halaman="<?= $halaman + 1 ?>"
                                                            href="<?= escapeNilai(urlDaftarMahasiswa($parameterDaftar, $halaman + 1)) ?>"
-                                                           aria-label="Halaman berikutnya">Berikutnya</a>
+                                                           aria-label="Halaman berikutnya">Next</a>
                                                     </li>
                                                 <?php else: ?>
-                                                    <li class="page-item disabled"><span class="page-link">Berikutnya</span></li>
+                                                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                                <?php endif; ?>
+                                                <?php if ($halaman < $jumlahHalaman): ?>
+                                                    <li class="page-item">
+                                                        <a class="page-link" data-halaman="<?= $jumlahHalaman ?>"
+                                                           href="<?= escapeNilai(urlDaftarMahasiswa($parameterDaftar, $jumlahHalaman)) ?>"
+                                                           aria-label="Halaman terakhir">Last Page</a>
+                                                    </li>
+                                                <?php else: ?>
+                                                    <li class="page-item disabled"><span class="page-link" aria-disabled="true">Last Page</span></li>
                                                 <?php endif; ?>
                                             </ul>
                                         </nav>

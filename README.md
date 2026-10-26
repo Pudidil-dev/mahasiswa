@@ -1,87 +1,88 @@
-﻿# Data Mahasiswa
+# Data Mahasiswa - UTS Pemrograman Web
 
-Aplikasi PHP + MySQL/MariaDB untuk mengelola data, nilai, dan foto mahasiswa. Halaman utama: `users.php`. Tidak memerlukan Composer atau npm.
+Aplikasi PHP + MySQL/MariaDB dengan template AdminLTE. Halaman utama: `users.php`. Tidak memerlukan Composer atau npm.
+
+**GitHub (Public):** [Pudidil-dev/mahasiswa](https://github.com/Pudidil-dev/mahasiswa)
 
 ## 1. Persiapan lokal
 
-- Gunakan XAMPP atau Laragon dengan PHP 8.1+ (ekstensi `mysqli` dan driver `mysqlnd`) serta MySQL/MariaDB.
-- Untuk XAMPP, salin proyek ke `C:\xampp\htdocs\mahasiswa`.
-- Untuk Laragon, salin proyek ke `C:\laragon\www\mahasiswa` (sesuaikan jika lokasi instalasi berbeda).
-- **XAMPP:** jalankan **Apache** dan **MySQL** melalui panel XAMPP.
-- **Laragon:** klik **Start All** untuk menjalankan web server dan MySQL. Jika memakai server bawaan PHP, cukup aktifkan MySQL.
+Gunakan PHP 8.1+ dengan ekstensi `mysqli` dan driver `mysqlnd`, serta MySQL/MariaDB.
 
-## 2. Setup / migrasi database
+| Pilihan | Lokasi folder proyek | Jalankan |
+| --- | --- | --- |
+| XAMPP | `C:\xampp\htdocs\mahasiswa` | Apache dan MySQL dari panel XAMPP |
+| Laragon | `C:\laragon\www\mahasiswa` | Klik **Start All** |
 
-**Melalui phpMyAdmin (jika tersedia):**
+Sesuaikan path jika lokasi instalasi berbeda. Jika memakai server bawaan PHP, cukup aktifkan MySQL.
 
-1. Buka `http://localhost/phpmyadmin`.
-2. Pilih **Import**, lalu impor [`database/setup.sql`](database/setup.sql). Skrip otomatis membuat database `mahasiswa` dan tabel yang diperlukan.
-3. Opsional: pilih database `mahasiswa`, lalu impor [`database/seed.sql`](database/seed.sql) untuk menambahkan 16 data contoh.
+## 2. Import / migrasi database
 
-**Alternatif melalui PowerShell** dari folder utama proyek:
+**Instalasi baru:** impor [`database/mahasiswa.sql`](database/mahasiswa.sql). File ekspor ini berisi struktur tabel dan **16 mahasiswa dummy dengan avatar** yang sudah disertakan di proyek.
 
-```powershell
-# XAMPP
-& "C:\xampp\mysql\bin\mysql.exe" -u root --execute="SOURCE database/setup.sql"
+- **phpMyAdmin:** buka `http://localhost/phpmyadmin`, pilih **Import**, lalu pilih `database/mahasiswa.sql`. Database `mahasiswa` dibuat otomatis.
+- **XAMPP, melalui PowerShell** dari folder utama proyek:
 
-# Opsional: tambahkan data contoh
-& "C:\xampp\mysql\bin\mysql.exe" -u root mahasiswa --execute="SOURCE database/seed.sql"
-```
+  ```powershell
+  & "C:\xampp\mysql\bin\mysql.exe" -u root --execute="SOURCE database/mahasiswa.sql"
+  ```
 
-**Laragon:** buka **Terminal** dari panel Laragon, lalu masuk ke folder proyek dan jalankan:
+- **Laragon:** buka **Terminal** dari panel Laragon, lalu jalankan:
+
+  ```shell
+  cd C:\laragon\www\mahasiswa
+  mysql -u root --execute="SOURCE database/mahasiswa.sql"
+  ```
+
+Tambahkan `-p` jika akun database memakai password. Di PowerShell biasa, jika `mysql` tidak dikenali, gunakan path `C:\laragon\bin\mysql\<versi>\bin\mysql.exe` sesuai instalasi.
+
+**Sudah memiliki database versi lama:** jalankan [`database/setup.sql`](database/setup.sql), lalu [`database/seed.sql`](database/seed.sql) untuk menambahkan data demo. Gunakan perintah di atas dengan mengganti nama file; untuk seed, pilih database `mahasiswa`:
 
 ```shell
-cd C:\laragon\www\mahasiswa
 mysql -u root --execute="SOURCE database/setup.sql"
-```
-
-Opsional, tambahkan data contoh:
-
-```shell
 mysql -u root mahasiswa --execute="SOURCE database/seed.sql"
 ```
 
-Terminal Laragon menyediakan perintah `mysql` tanpa perlu menulis path lengkap. Jika memakai PowerShell biasa dan `mysql` tidak dikenali, gunakan path lengkap `mysql.exe` di folder `C:\laragon\bin\mysql\<versi>\bin\` sesuai instalasi.
+Pada XAMPP gunakan path lengkap `mysql.exe` seperti contoh PowerShell. Setup mengganti nama tabel `nilaimhs` menjadi **`nilaimhsw`**, menambahkan **`file_path`**, dan menyalin foto dari `photo.namafile` atau kolom `foto` lama. Data lama dipertahankan; setup dan seed dapat diulang tanpa menimpa data yang sudah terisi.
 
-Tambahkan `-p` jika akun database memakai password. Jika phpMyAdmin tidak tersedia di Laragon, gunakan cara terminal di atas.
-
-**Database versi lama:** jalankan `setup.sql` yang sama. Skrip menyalin path foto dari `nilaimhs.foto` ke tabel `photo` jika kolom lama tersedia. Skrip dapat dijalankan ulang tanpa menghapus data mahasiswa atau menimpa foto yang sudah ada di tabel `photo`.
+Untuk membuat database kosong, cukup jalankan `setup.sql` tanpa seed.
 
 ## 3. Konfigurasi koneksi
 
-Sesuaikan [`php/connection.php`](php/connection.php) dengan database lokal:
+Periksa [`php/connection.php`](php/connection.php). Nilai default:
 
-| Pengaturan | Nilai default |
-| --- | --- |
-| Host | `localhost` |
-| Port | `3306` |
-| User | `root` |
-| Password | kosong |
-| Database | `mahasiswa` |
+| Host | Port | User | Password | Database |
+| --- | --- | --- | --- | --- |
+| `localhost` | `3306` | `root` | kosong | `mahasiswa` |
 
-Jika memakai nama database lain, sesuaikan juga `CREATE DATABASE` dan `USE` pada `database/setup.sql` sebelum import.
+Jika memakai nama database lain, sesuaikan juga `CREATE DATABASE` dan `USE` pada file SQL sebelum import.
 
 ## 4. Jalankan aplikasi
 
-**XAMPP (Apache):** buka `http://localhost/mahasiswa/users.php`.
+- **XAMPP / Laragon (Apache):** buka `http://localhost/mahasiswa/users.php`.
+- **Laragon Auto Virtual Hosts:** klik **Reload**, lalu buka `http://mahasiswa.test/users.php` jika fitur tersebut aktif dan memakai akhiran `.test`.
+- **Server bawaan PHP:** dari folder utama proyek, jalankan:
 
-**Laragon (Apache):** buka `http://localhost/mahasiswa/users.php`. Jika fitur **Auto Virtual Hosts** aktif, klik **Reload** pada Laragon lalu buka `http://mahasiswa.test/users.php` (sesuaikan jika akhiran domain diubah).
+  ```powershell
+  php -S localhost:8000
+  ```
 
-**Alternatif server bawaan PHP:** jalankan dari folder utama proyek:
+  Jika PHP belum ada di PATH, gunakan `& "C:\xampp\php\php.exe" -S localhost:8000`. Buka `http://localhost:8000/users.php`. MySQL harus tetap aktif.
 
-```powershell
-& "C:\xampp\php\php.exe" -S localhost:8000
-```
+## 5. Coba fitur UTS
 
-Jika PHP sudah ada di PATH, gunakan `php -S localhost:8000`. Buka `http://localhost:8000/users.php`. MySQL harus tetap aktif.
+1. Foto kecil tampil di sebelah nama, dalam kolom **Nama Mahasiswa**. Path tersimpan di **`nilaimhsw.file_path`**.
+2. Ketik **Andi** untuk mencari nama, lalu coba dropdown **Predikat**.
+3. Klik panah pada **Nilai Akhir** untuk berganti ASC/DESC.
+4. Pilih **5, 10, atau 15** per halaman; coba **First Page, Previous, Next, Last Page**. Dengan 16 data demo tersedia 4, 2, dan 2 halaman.
+5. Coba tambah/edit dengan foto, lalu hapus data. Avatar demo memakai aset bersama dan tetap tersedia untuk mahasiswa lain.
 
-Coba tambah, edit, dan hapus data untuk memastikan aplikasi terhubung ke database.
+Pengujian otomatis: `python tests/check_uts.py` (Python, PHP, dan `mysql` di PATH, misalnya melalui Terminal Laragon). Jika perlu, tambahkan `--mysql "C:\xampp\mysql\bin\mysql.exe"` dan `--php "C:\xampp\php\php.exe"`. Tes memakai database sementara yang dibersihkan setelah selesai.
 
 ## Jika ada masalah
 
-- **Koneksi gagal:** pastikan MySQL aktif dan konfigurasi `php/connection.php` sesuai.
-- **Tabel belum ditemukan:** impor `database/setup.sql`.
-- **Foto gagal diunggah:** gunakan JPG/PNG/GIF maksimal 2 MB dan pastikan `uploads/mahasiswa/` dapat ditulis oleh PHP. Atur `upload_max_filesize` minimal `2M` dan `post_max_size` minimal `8M` di `php.ini`.
-- **Memindahkan proyek berisi data:** salin dump database dan folder `uploads/mahasiswa/` agar foto tetap tersedia.
+- **Koneksi gagal:** pastikan MySQL aktif dan konfigurasi koneksi sesuai.
+- **Tabel/kolom belum ditemukan:** jalankan `database/setup.sql`.
+- **Foto gagal diunggah:** JPG/PNG/GIF maksimal 2 MB; folder `uploads/mahasiswa/` harus dapat ditulis PHP. Atur `upload_max_filesize` minimal `2M` dan `post_max_size` minimal `8M` di `php.ini`.
+- **Memindahkan data sendiri:** ekspor tabel `nilaimhsw` dan salin `uploads/mahasiswa/`. File `database/mahasiswa.sql` adalah ekspor data demo.
 
 Penjelasan kode: [Panduan kode untuk pemula](docs/PANDUAN_KODE.md).

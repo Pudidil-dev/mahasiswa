@@ -42,7 +42,7 @@ try {
 } catch (RuntimeException $error) {
     pesanAksi($error->getMessage(), 422);
 }
-$sql = 'INSERT INTO nilaimhs (nim, namalengkap, nilaiakhir, nilaihuruf, predikat)
+$sql = 'INSERT INTO nilaimhsw (nim, namalengkap, nilaiakhir, nilaihuruf, predikat)
         VALUES (?, ?, ?, ?, ?)';
 // Mahasiswa dan path foto harus berhasil disimpan bersama-sama.
 mysqli_begin_transaction($conn);
