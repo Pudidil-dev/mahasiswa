@@ -1,0 +1,35 @@
+.users-page .app-wrapper {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "lte-app-main";
+    grid-template-rows: 1fr;
+}
+
+.users-page .app-main {
+    min-width: 0;
+}
+
+.users-page .app-content {
+    padding-bottom: 24px;
+}
+
+#user-search {
+    width: 180px;
+}
+
+.mahasiswa-identitas {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 180px;
+}
+
+.mahasiswa-foto {
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bs-tertiary-bg);
+}
+
+.users-page .pagination {
+    flex-wrap: wrap;
+}
